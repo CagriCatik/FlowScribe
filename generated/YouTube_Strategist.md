@@ -1,9 +1,5 @@
 # YouTube Strategist Workflow Documentation  
 
-*File: `YouTube_Strategist.json`*  
-
----  
-
 ## 1. Overview  
 
 The **YouTube Strategist** workflow automates a full‑cycle YouTube content intelligence pipeline:  
@@ -177,30 +173,141 @@ The workflow solves the problem of **manual YouTube research** by:
 
 ## 11. Visual Diagrams  
 
-### 11.1 Main Execution Flow (simplified)
+
+### 11.1 Main Execution Flow (all triggers and phases)
 
 ```mermaid
 flowchart TD
-    A[On form submission] --> B[3 Channels (Set)]
-    B --> C[Split Out]
-    C --> D[Loop Over Items]
-    D -->|per channel| E[Channel Outliers (HTTP)]
-    E --> F[Sort1]
-    F --> G[Filter (6‑month)]
-    G --> H[Limit (10)]
-    H --> I[Set Fields]
-    H --> J[Title Analyzer]
-    H --> K[Analyze Thumbnails]
-    I --> L[Merge]
+    %% ---------- Phase 1: Niche Outliers (Form-driven) ----------
+    F1["On form submission (formTrigger)"] --> F2["3 Channels (Set)"]
+    F2 --> F3[Split Out]
+    F3 --> F4["Loop Over Items (splitInBatches)"]
+    F4 -->|per channel| F5["Channel Outliers (HTTP - Apify youtube-scraper)"]
+    F5 --> F6["Sort1 by viewCount desc"]
+    F6 --> F7["Filter videos <= 6 months old"]
+    F7 --> F8["Limit 10 videos"]
+    F8 --> F9["Set Fields (normalize: channel, title, url, thumbnail, views, likes)"]
+    F8 --> F10["Title Analyzer (LLM - power words)"]
+    F8 --> F11["Analyze Thumbnails (OpenAI Vision)"]
+    F9 --> F12["Merge (combine fields)"]
+    F10 --> F12
+    F11 --> F12
+    F12 --> F13["Niche Outliers Data (Google Sheets tab)"]
+
+    %% loop over next channel
+    F13 --> F4
+
+    %% ---------- Phase 2: Broad Niche (Weekly) ----------
+    W1["Sundays (scheduleTrigger)"] --> W2["Broad Niche (Set niche = artificial intelligence)"]
+    W2 --> W3["Scrape YT (HTTP - Apify youtube-scraper)"]
+    W3 --> W4["Title Analyzer1 (LLM - power words)"]
+    W4 --> W5["Analyze Thumbnails1 (OpenAI Vision)"]
+    W5 --> W6["Broad Niche Weekly (Google Sheets tab)"]
+
+    %% ---------- Phase 3, 4, 5: Niche Daily + Comments + Ideation ----------
+    D1["6 am (scheduleTrigger)"] --> D2["Niche (Set niche = n8n)"]
+    D2 --> D3["Scrape YT1 (HTTP - Apify youtube-scraper)"]
+    D3 --> D4["Title Analyzer2 (LLM - power words)"]
+    D4 --> D5["Analyze Thumbnails2 (OpenAI Vision)"]
+    D5 --> D6["Niche Daily (Google Sheets tab)"]
+
+    %% Phase 4: Comment Analysis
+    D6 --> C1["Channel URL (Set static channel, e.g. @nateherk)"]
+    C1 --> C2["Scrape Channel (HTTP - Apify youtube-scraper NEWEST)"]
+    C2 --> C3["Get Comments (HTTP - Apify youtube-comments-scraper)"]
+    C3 --> C4["Aggregate1 (join comment texts)"]
+    C4 --> C5["Comment Analyzer (LLM sentiment/requests)"]
+    C5 --> C6["Comment Analysis (Google Sheets tab)"]
+
+    %% Phase 5: Ideation
+    C6 --> I1["Get High Performers (Google Sheets - Niche Daily)"]
+    I1 --> I2["Aggregate (titles, power words, thumbnail analysis)"]
+    I2 --> I3["Channel Description (Set channel details)"]
+    I2 --> I4["Creative Agent (LLM - 3 ideas)"]
+    C6 --> I4
+    I3 --> I4
+    I4 --> I5["Titles & Thumbs (Output Parser to JSON)"]
+    I5 --> I6["Append Ideas (Google Sheets - Ideation tab)"]
+    I6 --> I7["Notification (Slack message with link)"]
+
+```
+
+---
+
+### 11.2 Phase 1 – Niche Outliers (Per-Channel Detail)
+
+```mermaid
+flowchart TD
+    A["On form submission"] --> B["3 Channels (Set: channels array)"]
+    B --> C["Split Out (one URL per item)"]
+    C --> D["Loop Over Items (splitInBatches size=1)"]
+    D -->|per channel| E["Channel Outliers (HTTP - Apify youtube-scraper)"]
+    E --> F["Sort1 by viewCount desc"]
+    F --> G["Filter: published within last 6 months"]
+    G --> H["Limit 10 videos"]
+
+    H --> I["Set Fields (normalize: channel, title, url, thumbnail, views, likes)"]
+    H --> J["Title Analyzer (LLM power words 1-3)"]
+    H --> K["Analyze Thumbnails (OpenAI Vision summary)"]
+
+    I --> L["Merge (combine fields + power words + thumbnail analysis)"]
     J --> L
     K --> L
-    L --> M[Niche Outliers Data (Sheets)]
+
+    L --> M["Niche Outliers Data (Google Sheets tab)"]
     M --> D
 
-    subgraph Weekly
-        N[Sundays] --> O[Broad Niche (Set)]
-        O --> P[Scrape YT (HTTP)]
-        P --> Q[Title Analyzer1]
-        Q --> R[Analyze Thumbnails1]
-        R --> S[Broad Niche Weekly (Sheets)]
-   
+```
+
+---
+
+### 11.3 Phase 2 – Broad Niche Weekly (Sunday)
+
+```mermaid
+flowchart TD
+    A["Sundays (scheduleTrigger)"] --> B["Broad Niche (Set niche = artificial intelligence)"]
+    B --> C["Scrape YT (HTTP - Apify youtube-scraper, searchQueries=niche, maxResults=5)"]
+    C --> D["Title Analyzer1 (LLM power words)"]
+    D --> E["Analyze Thumbnails1 (OpenAI Vision)"]
+    E --> F["Broad Niche Weekly (Google Sheets tab)"]
+
+```
+
+If you later mirror Phase 1’s sort/filter/limit logic here, insert Sort, Filter, Limit between C and D in the same pattern.
+
+---
+
+### 11.4 Phase 3 – Niche Daily (6 am) + Phase 4 Comment Analysis + Phase 5 Ideation
+
+```mermaid
+flowchart TD
+    %% Daily niche scrape
+    A["6 am (scheduleTrigger)"] --> B["Niche (Set niche = n8n)"]
+    B --> C["Scrape YT1 (HTTP - Apify youtube-scraper, maxResults=5)"]
+    C --> D["Title Analyzer2 (LLM power words)"]
+    D --> E["Analyze Thumbnails2 (OpenAI Vision)"]
+    E --> F["Niche Daily (Google Sheets tab)"]
+
+    %% Comment analysis on selected channel
+    F --> G["Channel URL (Set static channel URL)"]
+    G --> H["Scrape Channel (HTTP - Apify youtube-scraper, sortVideosBy=NEWEST)"]
+    H --> I["Get Comments (HTTP - Apify youtube-comments-scraper, max 30 per video)"]
+    I --> J["Aggregate1 (join comment texts)"]
+    J --> K["Comment Analyzer (LLM: doing_well, dislikes, requests)"]
+    K --> L["Comment Analysis (Google Sheets tab)"]
+
+    %% High performer aggregation for ideation
+    L --> M["Get High Performers (Sheets query on Niche Daily by date)"]
+    M --> N["Aggregate (titles, power words, thumbnail analysis arrays)"]
+    N --> O["Channel Description (Set channel details text)"]
+
+    %% Creative ideation
+    N --> P["Creative Agent (LLM: 3 new titles + thumbnails)"]
+    L --> P
+    O --> P
+
+    P --> Q["Titles & Thumbs (Output Parser to JSON: title_1..3, thumbnail_1..3)"]
+    Q --> R["Append Ideas (Google Sheets - Ideation tab)"]
+    R --> S["Notification (Slack message with sheet link)"]
+
+```

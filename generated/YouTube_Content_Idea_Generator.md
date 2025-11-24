@@ -1,6 +1,7 @@
 # YouTube Content Idea Generator  
 
-## 1. Overview  
+## 1. Overview
+
 This workflow automates the discovery of YouTube video ideas from viewer comments.  
 It:
 
@@ -141,7 +142,7 @@ The result is a continuously‑updated spreadsheet of comment‑driven video ide
 ### Flowchart (main execution path)
 
 ```mermaid
-flowchart TD
+flowchart LR
     A["When chat message received"] --> B["HTTP Request (Apify)"]
     B --> C["OpenAI – Decision (Yes/No)"]
     C --> D["Filter (output == Yes)"]
@@ -192,7 +193,3 @@ sequenceDiagram
     Trigger->>Sheet2: Update row with enriched data
     Sheet2-->>Trigger: Confirmation
 ```
-
---- 
-
-*End of documentation.*

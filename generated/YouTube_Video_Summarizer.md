@@ -1,6 +1,7 @@
 # YouTube Video Summarizer  
 
-## Overview  
+## Overview
+
 This workflow provides a **conversational AI assistant** that can generate concise, three‑bullet‑point summaries of YouTube videos. It works by:
 
 1. Receiving a request (video URL or ID) via a secured webhook.  
@@ -163,9 +164,12 @@ flowchart TD
     J --> K[Download Captions]
     K --> L[Caption File Conversion]
     L --> M[Caption Summary with ChatGPT]
-    M --> N[Edit Fields1 (summary)]
+    M --> N["Edit Fields1 (summary)"]
     N --> O[Return summary to tool]
-    O --> C   %% tool result back to AI Agent
+
+    %% tool result back to AI Agent
+    O --> C
+
     C --> P[Respond to Webhook]
     P --> Q[Webhook Response]
 ```
@@ -193,7 +197,3 @@ sequenceDiagram
     Agent->>Webhook: Final response (summary)
     Webhook->>Client: HTTP 200 + summary
 ```
-
---- 
-
-*End of documentation.*

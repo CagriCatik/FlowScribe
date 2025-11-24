@@ -1,7 +1,5 @@
 # YouTube Agent – n8n Workflow Documentation  
 
----  
-
 ## 1. Overview  
 
 **Purpose**  
@@ -15,6 +13,7 @@ The *YouTube Agent* workflow provides a conversational interface for interacting
 | **Respond** | Answer user queries directly when the LLM determines a direct response is appropriate. |
 
 **Problem solved**  
+
 - Centralises video knowledge (metadata + transcript + semantic embeddings) in a single DB.  
 - Enables a chat‑style UI (webhook or chat‑trigger) that understands natural language commands and routes them to the correct backend operation.  
 
@@ -198,30 +197,155 @@ Below is a linear description of the main execution path. Branches are noted whe
 
 ## 11. Visual Diagrams  
 
-### 11.1. Main Flowchart (Mermaid)
+### 11.1 Main Flow (Webhook + Branch Overview)
 
 ```mermaid
 flowchart TD
-    A[Webhook] --> B[Prep Input Fields]
-    B --> C[Add User Message to DB]
-    C --> D[AI Agent (classifier)]
-    D --> E[Switch on action_type]
+    %% Entry
+    A[Webhook: invoke-youtube-agent] --> B[Prep Input Fields]
+    B --> C["Add User Message to DB (type: human)"]
+    C --> D["AI Agent (classifier)"]
+    D --> E{output.action_type}
 
-    %% Add branch
-    E -->|add| F[Code (extract videoId)]
-    F --> G[Check if video exists]
-    G --> H{Row exists?}
-    H -->|yes| I[Return text (already stored)]
-    H -->|no| J[Get Video ID]
-    J --> K[Fetch Video Details (YouTube API)]
-    K --> L[Extract video details]
-    L --> M[Get transcript from SUPADATA]
-    M --> N[Join transcript in code1]
-    N --> O[Merge1 (metadata + transcript)]
-    O --> P[Summarize agent]
-    O --> Q[Tag generator agent]
-    P --> R[Merge (summary + tags)]
-    Q --> R
-    R --> S[Add video to supabase]
-    S --> T[Edit Fields (prepare transcript)]
-    T --> U[Default Data Loader
+    %% Add branch (overview)
+    E -->|add| ADD_START[Add branch]
+
+    %% Summarize branch (overview)
+    E -->|summarize| SUMM_START[Summarize branch]
+
+    %% Search branch (overview)
+    E -->|search| SEARCH_START[Search branch]
+
+    %% Respond branch (overview)
+    E -->|respond| RESP_START[Respond branch]
+
+    %% Common tail (all branches)
+    ADD_END[Add branch result] --> Z1["Add AI Message to DB (type: ai)"]
+    SUMM_END[Summarize branch result] --> Z1
+    SEARCH_END[Search branch result] --> Z1
+    RESP_END[Respond branch result] --> Z1
+
+    Z1 --> Z2[Prep Output Fields]
+    Z2 --> Z3[Respond to Webhook]
+```
+
+This diagram is a high level router: the detailed logic of each branch is in the next diagrams.
+
+---
+
+### 11.2 Add Branch (Full Ingestion + Embedding Pipeline)
+
+```mermaid
+flowchart TD
+    %% Entry from classifier
+    A[From Switch: action_type == add] --> B[Code: extract videoId from output.video_url]
+    B --> C["Check if video exists (Supabase: videos by video_id)"]
+    C --> D{Row exists?}
+
+    %% Already in DB path
+    D -->|yes| E[Return text: Video already in database]
+    E --> F1[Wrap message as output.data]
+    F1 --> ADD_END[Add branch result]
+
+    %% New video path
+    D -->|no| G["Get Video ID (Set node)"]
+    G --> H["Fetch Video Details (YouTube Data API)"]
+    H --> I["Extract video details (title, description, channelName)"]
+    I --> J["Get transcript from SUPADATA"]
+    J --> K["Join transcript in code1 (normalize to transcript field)"]
+    K --> L["Merge1: metadata + transcript"]
+
+    %% LLM summarization and tagging
+    L --> M["Summarize agent (summary, keypoints, tasks, quotes)"]
+    L --> N["Tag generator agent (tags)"]
+    M --> O["Merge: summary + tags"]
+    N --> O
+
+    %% Insert into main Supabase table
+    O --> P["Add video to Supabase (videos table)"]
+
+    %% Prepare text for embeddings
+    P --> Q["Edit Fields: prepare transcript text"]
+    Q --> R["Default Data Loader (document loader)"]
+    R --> S["Recursive Character Text Splitter (with overlap)"]
+    S --> T[ Embeddings OpenAI]
+    T --> U["Insert documents into vector store (youtube_agent_data)"]
+
+    %% Prepare friendly success message
+    U --> V["Generate output message (Set data, e.g. Video X was added)"]
+    V --> ADD_END[Add branch result]
+```
+
+`ADD_END` is the same node that feeds into the shared tail in 11.1.
+
+---
+
+### 11.3 Summarize Branch (Use Stored Video Data)
+
+```mermaid
+flowchart TD
+    A[From Switch: action_type == summarize] --> B["get_video_by_videoId (Supabase)"]
+    B --> C["Gather fields (title, description, summary, keypoints, tasks, quotes, tags, user query)"]
+    C --> D["AI Agent1 (answer based on stored summary data)"]
+    D --> E["Gather output data (Set: output.message, optional data)"]
+    E --> SUMM_END[Summarize branch result]
+```
+
+`SUMM_END` connects back to `Add AI Message to DB` in the main diagram.
+
+---
+
+### 11.4 Search Branch (Vector Store Retrieval)
+
+```mermaid
+flowchart TD
+    A[From Switch: action_type == search] --> B[Search Agent]
+    B -->|uses tool| C[Vector Store Retrieval: video_transcript_query]
+    C --> B
+
+    B --> D["Prepare output (Set: natural language answer + matching video URLs)"]
+    D --> SEARCH_END[Search branch result]
+```
+
+The Search Agent uses the `video_transcript_query` tool backed by the Supabase vector store. `SEARCH_END` joins the shared tail.
+
+---
+
+### 11.5 Respond Branch (Direct LLM Answer)
+
+```mermaid
+flowchart TD
+    A[From Switch: action_type == respond] --> B[Return text2 (use classifier response field)]
+    B --> RESP_END[Respond branch result]
+```
+
+`RESP_END` again joins the shared tail: Add AI Message to DB, Prep Output Fields, Respond to Webhook.
+
+---
+
+### 11.6 Chat Trigger Variant (n8n Chat UI)
+
+```mermaid
+flowchart TD
+    A[When chat message received] --> B["Edit Fields1 (map chatInput, sessionId)"]
+    B --> C["Add User Message to DB (type: human)"]
+    C --> D["AI Agent (classifier)"]
+    D --> E{output.action_type}
+
+    %% Reuse same branches as webhook
+    E -->|add| ADD_START[Add branch]
+    E -->|summarize| SUMM_START[Summarize branch]
+    E -->|search| SEARCH_START[Search branch]
+    E -->|respond| RESP_START[Respond branch]
+
+    %% Common tail reused
+    ADD_END --> Z1["Add AI Message to DB (type: ai)"]
+    SUMM_END --> Z1
+    SEARCH_END --> Z1
+    RESP_END --> Z1
+
+    Z1 --> Z2[Prep Output Fields]
+    Z2 --> Z3[Respond to Chat Webhook]
+```
+
+This reflects that the chat trigger differs only in how it maps the incoming payload; once `sessionId` and `chatInput` are normalized, the control flow is identical.

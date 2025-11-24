@@ -1,4 +1,6 @@
-# FlowScribe – n8n Workflow Documentation Generator
+# FlowScribe
+
+> A n8n Workflow Documentation Generator
 
 FlowScribe turns n8n workflow JSON definitions into implementation-grade Markdown documentation using a local LLM (Ollama by default). The project now uses a layered architecture with reusable core services, an extensible LLM client interface, and both CLI and PyQt desktop front-ends.
 
@@ -15,7 +17,7 @@ FlowScribe turns n8n workflow JSON definitions into implementation-grade Markdow
 
 ## Repository layout
 
-```
+```bash
 flowscribe/
   cli/           # CLI entrypoint and argument parsing
   config/        # Typed config models and loader/merger
@@ -23,7 +25,6 @@ flowscribe/
   gui/           # PyQt6 application using the engine
   llm/           # LLM interface, Ollama client, and related errors
   logging.py     # Shared logging setup
-
 tests/           # Unit tests
 ```
 
@@ -34,6 +35,7 @@ tests/           # Unit tests
 - Python packages: `requests`, `tqdm`, `rich`, `PyQt6` (for the GUI), and `pytest` for tests.
 
 Install dependencies (example):
+
 ```bash
 pip install requests tqdm rich PyQt6 pytest
 ```
@@ -43,10 +45,12 @@ pip install requests tqdm rich PyQt6 pytest
 FlowScribe resolves configuration in this order: built-in defaults < TOML file < environment variables < CLI flags.
 
 Supported config file names (first match wins):
+
 - `flowscribe.toml`
 - `flowscribe-config.toml`
 
 Example `flowscribe.toml`:
+
 ```toml
 [paths]
 input_path = "./workflows"
@@ -66,30 +70,34 @@ host = "http://localhost:11434"
 model = "llama3.2:1b"
 
 [llm.options]
-num_predict = 1024
-temperature = 0.4
+num_predict = 4096
+temperature = 0.18
 top_p = 0.9
-num_ctx = 4096
-repeat_penalty = 1.1
+num_ctx = 8192
+repeat_penalty = 1.08
 ```
 
 Environment variable overrides:
+
 - `FS_LLM_HOST`
 - `FS_LLM_MODEL`
 
 ## CLI usage
 
 Run the CLI via the module entrypoint:
+
 ```bash
 python -m flowscribe.cli.main generate /path/to/workflows -o ./docs
 ```
 
 Commands:
+
 - `generate INPUT_PATH [options]` – create Markdown docs.
 - `dry-run INPUT_PATH [options]` – list workflows without calling the LLM or writing files.
 - `config show [--config PATH]` – print the resolved configuration.
 
 Common options (shared by `generate` and `dry-run`):
+
 - `-o, --output-dir PATH` – output directory root (mirrors input structure).
 - `--config PATH` – explicit TOML config file.
 - `-m, --model NAME` and `--host URL` – LLM target.
@@ -98,6 +106,7 @@ Common options (shared by `generate` and `dry-run`):
 - `-v, --verbose` – enable DEBUG logging.
 
 Exit codes:
+
 - `0` success
 - `1` usage error
 - `2` configuration error
@@ -107,14 +116,17 @@ Exit codes:
 ## GUI usage
 
 Launch the desktop app (PyQt6 required):
+
 ```bash
 python -m flowscribe.gui.app
 ```
+
 The GUI mirrors the CLI capabilities: select input/output paths, choose the Ollama host/model and options, edit prompts, and run batch generation in a non-blocking worker thread with progress and logs.
 
 ## Library usage
 
 You can call the engine from Python code:
+
 ```python
 from pathlib import Path
 from flowscribe.config.loader import load_config, apply_cli_overrides
@@ -130,6 +142,7 @@ print(result.processed, "files documented")
 ## Development
 
 Run the test suite:
+
 ```bash
 pytest -q
 ```

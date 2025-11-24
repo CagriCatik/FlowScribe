@@ -1,8 +1,6 @@
 # YouTube Educator Plus Workflow Documentation  
 
----
-
-## 1. Overview  
+## Overview  
 
 **Purpose** – This workflow receives a request (via an HTTP webhook) containing a user‑provided query that should include a YouTube video link. It then:  
 
@@ -17,7 +15,7 @@
 
 ---
 
-## 2. Triggers and Entry Points  
+## Triggers and Entry Points  
 
 | Node | Trigger Type | Details |
 |------|--------------|---------|
@@ -27,9 +25,9 @@ The webhook is the sole entry point; every execution starts here.
 
 ---
 
-## 3. Inputs and Outputs  
+## Inputs and Outputs  
 
-### 3.1 Expected Input (JSON body)  
+### Expected Input (JSON body)  
 
 | Field | Type | Description |
 |-------|------|-------------|
@@ -38,7 +36,7 @@ The webhook is the sole entry point; every execution starts here.
 | `request_id` | string | Correlation ID for tracing. |
 | `session_id` | string | Session identifier used for chat memory persistence. |
 
-### 3.2 Produced Output  
+### Produced Output  
 
 The workflow responds with **all incoming items** (the original webhook payload) plus an additional field `success: true` (added by **Prep Output Fields**). The response also includes a custom header `X-n8n-Signature` (empty value in the definition).  
 
@@ -46,7 +44,7 @@ The workflow responds with **all incoming items** (the original webhook payload)
 
 ---
 
-## 4. Node‑by‑Node Flow  
+## Node‑by‑Node Flow  
 
 | # | Node (ID) | Type | Core Function | Key Parameters / Settings |
 |---|-----------|------|----------------|----------------------------|
@@ -69,7 +67,7 @@ The workflow responds with **all incoming items** (the original webhook payload)
 
 ---
 
-## 5. Control Flow and Logic  
+## Control Flow and Logic  
 
 1. **Linear execution** – Nodes are wired in a straight line; there are no conditional branches or loops defined in the workflow JSON.  
 2. **AI Agent orchestration** – The agent follows the exact steps described in its system prompt (see node 4). The LLM decides when to call each tool; tool calls are routed via the `ai_tool` connections (`Get transcript`, `Web Searcher`).  
@@ -80,7 +78,7 @@ The workflow responds with **all incoming items** (the original webhook payload)
 
 ---
 
-## 6. External Integrations  
+## External Integrations  
 
 | Integration | Node(s) | Credential Type | Purpose |
 |-------------|---------|-----------------|---------|
@@ -94,7 +92,7 @@ The workflow responds with **all incoming items** (the original webhook payload)
 
 ---
 
-## 7. Error Handling and Retries  
+## Error Handling and Retries  
 
 * The workflow does **not** define explicit error‑handling branches (e.g., “Error” nodes).  
 * n8n’s built‑in retry mechanism will attempt each node up to **3 times** on failure, with a default back‑off.  
@@ -104,7 +102,7 @@ The workflow responds with **all incoming items** (the original webhook payload)
 
 ---
 
-## 8. Configuration and Deployment Notes  
+## Configuration and Deployment Notes  
 
 | Item | Detail |
 |------|--------|
@@ -118,7 +116,7 @@ The workflow responds with **all incoming items** (the original webhook payload)
 
 ---
 
-## 9. Security and Data Protection  
+## Security and Data Protection  
 
 | Concern | Mitigation |
 |---------|------------|
@@ -130,7 +128,7 @@ The workflow responds with **all incoming items** (the original webhook payload)
 
 ---
 
-## 10. Limitations and Extension Points  
+## Limitations and Extension Points  
 
 | Limitation | Possible Extension |
 |------------|--------------------|
@@ -142,9 +140,9 @@ The workflow responds with **all incoming items** (the original webhook payload)
 
 ---
 
-## 11. Visual Diagrams  
+## Visual Diagrams  
 
-### 11.1 Main Execution Flow (Mermaid Flowchart)
+### Main Execution Flow (Mermaid Flowchart)
 
 ```mermaid
 flowchart TD
@@ -163,7 +161,7 @@ flowchart TD
     M --> N[Respond to Webhook]
 ```
 
-### 11.2 Interaction Sequence (AI Agent & Tools)
+### Interaction Sequence (AI Agent & Tools)
 
 ```mermaid
 sequenceDiagram
@@ -189,7 +187,3 @@ sequenceDiagram
         WF->>UI: Error response (not defined)
     end
 ```
-
---- 
-
-*End of documentation.*
