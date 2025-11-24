@@ -1,0 +1,96 @@
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Node / JS
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Editors / IDE
+.vscode/
+.idea/
+
+# Environments & secrets
+.env
+.env.*
+.env.local
+secrets/
+.secrets/
+
+# Temporary / cache / builds
+tmp/
+.tmp/
+cache/
+dist/
+build/
+coverage/
+
+# n8n local data (if any)
+.n8n/
+.n8n-db/
+*.sqlite
+
+# Archives and large binaries (keep repo light)
+*.zip
+*.tar
+*.gz
+*.bz2
+*.7z
+
+# Logs
+logs/
+*.log
+
+.DS_Store
+
+# Node / JS
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Editors / IDE
+.vscode/
+.idea/
+
+# Environments & secrets
+.env
+.env.*
+.env.local
+secrets/
+.secrets/
+
+# Temporary / cache / builds
+tmp/
+.tmp/
+cache/
+dist/
+build/
+coverage/
+
+# Archives and large binaries
+*.zip
+*.tar
+*.gz
+*.bz2
+*.7z
+
+# Logs
+logs/
+*.log
+
+# sort workflows
+n8n-workflows
+dropshipping
