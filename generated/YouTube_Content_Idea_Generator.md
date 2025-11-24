@@ -2,8 +2,7 @@
 
 ## 1. Overview
 
-This workflow automates the discovery of YouTube video ideas from viewer comments.  
-It:
+This workflow automates the discovery of YouTube video ideas from viewer comments. It works by:
 
 1. Receives a chat message containing a YouTube video URL (or any string that can be used as a start URL).  
 2. Scrapes the comments of that video via an Apify actor.  
@@ -16,8 +15,6 @@ It:
 
 The result is a continuously‑updated spreadsheet of comment‑driven video ideas, each enriched with research, a hook, and a structured outline ready for production.  
 
----
-
 ## 2. Triggers and Entry Points  
 
 | Node | Trigger Type | Description |
@@ -25,8 +22,6 @@ The result is a continuously‑updated spreadsheet of comment‑driven video ide
 | **When chat message received** (`@n8n/n8n-nodes-langchain.chatTrigger`) | Webhook / chat‑message trigger | Fires when a chat message arrives (e.g., from a Slack/Discord bot). The message payload is expected to contain a YouTube video URL or a search term that will be used as `{{ $json.chatInput }}`. |
 
 *The webhook ID is `a3b75c51-c5a8-44cc-b116-8ac9ac5b67bd`.*  
-
----
 
 ## 3. Inputs and Outputs  
 
@@ -41,8 +36,6 @@ The result is a continuously‑updated spreadsheet of comment‑driven video ide
 | OpenAI2 (research) | Comment text (`$json.text`) | JSON `{ topic, research_overview }` | Structured JSON |
 | OpenAI1 (hook + outline) | Output of OpenAI2 (`topic`, `research_overview`) | JSON `{ hook, outline }` | Structured JSON |
 | Google Sheets (update) | Enriched data (topic, research, hook, outline) | Updated row in the same sheet (matched on `id`) | Columns: `topic`, `research`, `hook`, `outline` |
-
----
 
 ## 4. Node‑by‑Node Flow  
 
@@ -59,8 +52,6 @@ The result is a continuously‑updated spreadsheet of comment‑driven video ide
 | 9 | **Google Sheets** (`1c81d413…`) | `n8n-nodes-base.googleSheets` (update) | Same spreadsheet as step 5.<br>Columns updated: `topic`, `research`, `hook`, `outline` (matched on `id`). | Writes the enriched content back to the sheet. |
 | 10 | **Tavily** (`e91b50db…`) | `@n8n/n8n-nodes-langchain.toolHttpRequest` | POST to `https://api.tavily.com/search` with Authorization header `Bearer tvly‑dev‑…`.<br>Body contains placeholder `{searchTerm}` which is filled by OpenAI2 at runtime. | Provides real‑time web search results for the research generation step. |
 
----
-
 ## 5. Control Flow and Logic  
 
 1. **Linear flow** from chat trigger → HTTP request → OpenAI decision → Filter → Google Sheets1.  
@@ -69,8 +60,6 @@ The result is a continuously‑updated spreadsheet of comment‑driven video ide
 4. **Tool integration**: OpenAI2 calls the **Tavily** node as an AI tool (`ai_tool` connection). The tool’s output is injected into the LLM prompt automatically.  
 
 **Combinatorial logic**: The filter uses a strict string equality (`Yes`). No other combinators are used.  
-
----
 
 ## 6. External Integrations  
 
@@ -82,15 +71,11 @@ The result is a continuously‑updated spreadsheet of comment‑driven video ide
 | **Tavily** | Tavily | Bearer token (`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`) | Web search used by OpenAI2. |
 | **n8n LangChain Trigger** | When chat message received | Internal webhook (no external auth) | Receives chat payload. |
 
----
-
 ## 7. Error Handling and Retries  
 
-- The workflow does **not** define explicit error‑handling nodes (e.g., “Error Trigger” or “Retry”).  
-- n8n’s default behavior: if a node fails, execution stops and the error is logged.  
-- **Recommendation**: add “Error Workflow” nodes or enable “Continue On Fail” where appropriate (e.g., HTTP request to Apify, OpenAI calls) to avoid a single bad comment halting the entire pipeline.  
-
----
+* The workflow does **not** define explicit error‑handling nodes (e.g., “Error Trigger” or “Retry”).  
+* n8n’s default behavior: if a node fails, execution stops and the error is logged.  
+* **Recommendation**: add “Error Workflow” nodes or enable “Continue On Fail” where appropriate (e.g., HTTP request to Apify, OpenAI calls) to avoid a single bad comment halting the entire pipeline.  
 
 ## 8. Configuration and Deployment Notes  
 
@@ -105,17 +90,14 @@ The result is a continuously‑updated spreadsheet of comment‑driven video ide
 | **Execution Order** | Set to `v1` (default) – linear execution as defined by connections. |
 | **Environment** | Works on any n8n instance (self‑hosted or n8n.cloud) with internet access. |
 
----
-
 ## 9. Security and Data Protection  
 
-- **Secrets**: All bearer tokens and API keys are stored in n8n credential stores (encrypted at rest).  
-- **Least Privilege**: The Google Sheets OAuth scope should be limited to the specific spreadsheet.  
-- **Data Retention**: Comment data and generated ideas are persisted in the Google Sheet; consider GDPR/CCPA compliance if personal data (author names) are stored.  
-- **Transport Security**: All external calls use HTTPS.  
-- **Webhook Exposure**: The chat trigger webhook should be protected (e.g., IP whitelist or secret token) if exposed publicly.  
+* **Secrets**: All bearer tokens and API keys are stored in n8n credential stores (encrypted at rest).  
+* **Least Privilege**: The Google Sheets OAuth scope should be limited to the specific spreadsheet.  
+* **Data Retention**: Comment data and generated ideas are persisted in the Google Sheet; consider GDPR/CCPA compliance if personal data (author names) are stored.  
+* **Transport Security**: All external calls use HTTPS.  
+* **Webhook Exposure**: The chat trigger webhook should be protected (e.g., IP whitelist or secret token) if exposed publicly.  
 
----
 
 ## 10. Limitations and Extension Points  
 
@@ -130,12 +112,10 @@ The result is a continuously‑updated spreadsheet of comment‑driven video ide
 
 **Possible extensions**  
 
-- Add a **sentiment analysis** node before the decision step.  
-- Store the raw Apify JSON response in a separate sheet for audit.  
-- Integrate a **notification** (Slack/Discord) when a new “Yes” idea is added.  
-- Use **OpenAI function calling** instead of manual JSON parsing for stricter output validation.  
-
----
+* Add a **sentiment analysis** node before the decision step.  
+* Store the raw Apify JSON response in a separate sheet for audit.  
+* Integrate a **notification** (Slack/Discord) when a new “Yes” idea is added.  
+* Use **OpenAI function calling** instead of manual JSON parsing for stricter output validation.  
 
 ## 11. Visual Diagrams  
 

@@ -17,8 +17,6 @@ The *YouTube Agent* workflow provides a conversational interface for interacting
 - Centralises video knowledge (metadata + transcript + semantic embeddings) in a single DB.  
 - Enables a chat‑style UI (webhook or chat‑trigger) that understands natural language commands and routes them to the correct backend operation.  
 
----  
-
 ## 2. Triggers & Entry Points  
 
 | Trigger Node | Path / Event | Primary Use |
@@ -27,8 +25,6 @@ The *YouTube Agent* workflow provides a conversational interface for interacting
 | **When chat message received** | Internal n8n chat webhook (`a023c538‑…`) | Handles chat‑style messages from the n8n UI (`sessionId`, `chatInput`). |
 
 Both triggers feed into **Prep Input Fields** (or **Edit Fields1** for the chat trigger) which normalises the payload.  
-
----  
 
 ## 3. Inputs & Outputs  
 
@@ -57,8 +53,6 @@ The workflow always ends with **Respond to Webhook**. The response body is built
 ```
 
 When a video is added, an additional `data` field is set by **Generate output message** (e.g., “The video ‘…’ by … was added successfully!”).  
-
----  
 
 ## 4. Node‑by‑Node Flow  
 
@@ -111,8 +105,6 @@ Below is a linear description of the main execution path. Branches are noted whe
 
 *The *When chat message received* trigger follows the same logical path, but uses **Edit Fields1** instead of **Prep Input Fields** to map `sessionId` and `chatInput`. The rest of the flow is identical.*
 
----  
-
 ## 5. Control Flow & Logic  
 
 | Construct | Description |
@@ -123,8 +115,6 @@ Below is a linear description of the main execution path. Branches are noted whe
 | **Memory Buffer Window** (`f017e258…`) | Provides a sliding‑window chat memory to the LLMs (used by both **AI Agent** and **AI Agent1**). |
 | **Vector Store Retrieval** (`e8a4ab94…`) | Exposes a tool (`video_transcript_query`) to the **Search Agent** for semantic retrieval. |
 | **Retry / Error handling** | Not explicitly configured; default n8n retry policy (3 attempts, exponential back‑off) applies to all HTTP and database nodes. Custom error messages are generated in the *Extract transcript url* and *Return text* code nodes. |
-
----  
 
 ## 6. External Integrations  
 
@@ -138,8 +128,6 @@ Below is a linear description of the main execution path. Branches are noted whe
 | **Header Auth for Webhook** | `Webhook` | `Header Auth account` (ID `o5akNgXQQR74Sezh`). |
 | **Optional HTTP requests** | `Get video page`, `Fetch transcript`, `XML` | No credentials (public URLs). |
 
----  
-
 ## 7. Error Handling & Retries  
 
 | Node | Failure Mode | Current Handling |
@@ -152,8 +140,6 @@ Below is a linear description of the main execution path. Branches are noted whe
 
 *Recommendation*: Add an **Error** branch after the **Switch** to return a generic “I could not understand your request.” message.
 
----  
-
 ## 8. Configuration & Deployment Notes  
 
 | Item | Details |
@@ -164,8 +150,6 @@ Below is a linear description of the main execution path. Branches are noted whe
 | **Deploy** | Export the JSON and import into an n8n instance with the required credentials (Supabase, Anthropic, OpenAI, YouTube OAuth2, Header Auth). |
 | **Scaling** | Stateless HTTP webhook; can be run behind a load balancer. Vector store and DB are external services, so horizontal scaling of n8n workers is safe. |
 | **Versioning** | The workflow version ID is `901bdc0a-bc67-46bc-b805-0e708d3be938`. Increment on changes. |
-
----  
 
 ## 9. Security & Data Protection  
 
@@ -179,8 +163,6 @@ Below is a linear description of the main execution path. Branches are noted whe
 | **Data at rest** | Supabase provides encrypted storage; ensure the project enforces TLS for all connections. |
 | **GDPR / privacy** | If storing user identifiers, implement a deletion endpoint that removes rows from `messages` and `videos` for a given `user_id`. |
 
----  
-
 ## 10. Limitations & Extension Points  
 
 | Limitation | Suggested Extension |
@@ -192,8 +174,6 @@ Below is a linear description of the main execution path. Branches are noted whe
 | **No pagination for search results** | Extend **Search Agent** to return a limited set and include a “show more” token. |
 | **Hard‑coded YouTube API key placeholder** | Store the API key in an environment variable and reference it via `{{$env.YOUTUBE_API_KEY}}`. |
 | **No explicit logging** | Add **Set** nodes that write to a logging table or external observability service (e.g., Sentry). |
-
----  
 
 ## 11. Visual Diagrams  
 
@@ -315,7 +295,7 @@ The Search Agent uses the `video_transcript_query` tool backed by the Supabase v
 
 ```mermaid
 flowchart TD
-    A[From Switch: action_type == respond] --> B[Return text2 (use classifier response field)]
+    A[From Switch: action_type == respond] --> B["Return text2 (use classifier response field)"]
     B --> RESP_END[Respond branch result]
 ```
 

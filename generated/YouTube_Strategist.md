@@ -19,8 +19,6 @@ The workflow solves the problem of **manual YouTube research** by:
 * Summarising audience sentiment from comments.  
 * Producing data‑driven content ideas ready for execution.  
 
----  
-
 ## 2. Triggers & Entry Points  
 
 | Trigger Node | Type | Schedule / Event | Output |
@@ -28,8 +26,6 @@ The workflow solves the problem of **manual YouTube research** by:
 | **On form submission** | `formTrigger` | User submits a form with three channel URLs (Channel 1‑3). | JSON with fields `Channel 1`, `Channel 2`, `Channel 3`. |
 | **Sundays** | `scheduleTrigger` | Every Sunday (default timezone) | Starts **Broad Niche** branch. |
 | **6 am** | `scheduleTrigger` | Daily at 06:00 | Starts **Niche (Daily)** branch. |
-
----  
 
 ## 3. Inputs & Outputs  
 
@@ -58,8 +54,6 @@ The workflow solves the problem of **manual YouTube research** by:
 | **Titles & Thumbs** (Output Parser) | Agent raw text | Parsed JSON (`title_1` … `thumbnail_3`). |
 | **Append Ideas** (Google Sheets) | Parsed ideas | Row appended to *Ideation* tab. |
 | **Notification** (Slack) | Fixed message + link | Slack channel notification. |
-
----  
 
 ## 4. Node‑by‑Node Flow  
 
@@ -98,8 +92,6 @@ The workflow solves the problem of **manual YouTube research** by:
 |31| **Titles & Thumbs** → **Append Ideas** (Google Sheets) | Appends the three ideas to the *Ideation* tab. |
 |32| **Append Ideas** → **Notification** (Slack) | Sends a Slack message with a link to the spreadsheet. |
 
----  
-
 ## 5. Control Flow & Logic  
 
 * **Branching** – The workflow has three independent branches triggered by different entry points (form, Sunday, 6 am). Each branch follows the same “scrape → analyse → store” pattern but writes to distinct Google Sheet tabs.  
@@ -107,8 +99,6 @@ The workflow solves the problem of **manual YouTube research** by:
 * **Merging** – The `Merge` node combines three parallel streams (field normalisation, title power‑word extraction, thumbnail analysis) into a single record before persisting.  
 * **Aggregation** – `aggregate` nodes collect arrays of titles, power words, and thumbnail analyses across the day to feed the creative LLM.  
 * **Conditional Filtering** – The `Filter` node removes videos older than six months, ensuring only recent high‑performing content is considered.  
-
----  
 
 ## 6. External Integrations  
 
@@ -121,16 +111,12 @@ The workflow solves the problem of **manual YouTube research** by:
 | **Slack** | `slack` | Sends final notification with link to the sheet. | Credential `Slack account 3`. |
 | **n8n Form Trigger** | `formTrigger` | UI for manual entry of competitor channels. | Built‑in webhook. |
 
----  
-
 ## 7. Error Handling & Retries  
 
 * **n8n default** – Each node inherits the platform’s automatic retry policy (3 attempts with exponential back‑off).  
 * **HTTP Request nodes** – `retryOnFail` is not explicitly set; they rely on the default.  
 * **LLM nodes** – Errors from OpenRouter/OpenAI bubble up; the workflow will stop at the failing node unless a “Continue on Fail” flag is manually enabled.  
 * **Google Sheets** – Append failures (e.g., quota exceeded) will abort the branch; consider adding a “Error Trigger” node for alerting in production.  
-
----  
 
 ## 8. Configuration & Deployment Notes  
 
@@ -145,8 +131,6 @@ The workflow solves the problem of **manual YouTube research** by:
 | **Execution Order** | The workflow uses **v1** execution order (sequential). No parallelism beyond the explicit split‑out batches. |
 | **Testing** | Run the workflow in “Manual” mode starting from the **On form submission** node to verify the full Phase 1 path before enabling the scheduled triggers. |
 
----  
-
 ## 9. Security & Data Protection  
 
 * **API Keys** – Stored as encrypted credentials in n8n; never hard‑coded in the workflow JSON.  
@@ -154,8 +138,6 @@ The workflow solves the problem of **manual YouTube research** by:
 * **Webhook ID** – The form trigger webhook is secret; expose only the generated public form URL.  
 * **Data Retention** – All scraped video metadata, comments, and generated ideas are persisted in Google Sheets. Review your organization’s data‑retention policy and delete rows older than required.  
 * **PII** – Comments may contain user‑generated personal data. The workflow only aggregates text for sentiment analysis; no raw comment text is stored beyond the temporary aggregation step. Consider anonymising or deleting the raw comment rows after analysis.  
-
----  
 
 ## 10. Limitations & Extension Points  
 
@@ -169,10 +151,7 @@ The workflow solves the problem of **manual YouTube research** by:
 | **Hard‑coded Slack message** | Parameterise the message template to include dynamic stats (e.g., number of ideas generated). |
 | **No deduplication** – Duplicate titles or thumbnails may be stored. | Add a “Unique” filter before appending to Google Sheets. |
 
----  
-
 ## 11. Visual Diagrams  
-
 
 ### 11.1 Main Execution Flow (all triggers and phases)
 
