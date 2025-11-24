@@ -1,0 +1,24 @@
+# Alternate example configuration (same schema as flowscribe.toml).
+# This file name is also discovered automatically if present.
+
+[paths]
+input_path = "./workflows"
+output_dir = "./generated"
+
+[prompts]
+profile = "n8n-doc"
+
+[generation]
+dry_run = false
+verbose = false
+
+[llm]
+host = "http://localhost:11434"
+model = "llama3.2:1b"
+
+[llm.options]
+num_predict = 4096
+temperature = 0.18
+top_p = 0.9
+num_ctx = 8192
+repeat_penalty = 1.08

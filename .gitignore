@@ -90,7 +90,3 @@ coverage/
 # Logs
 logs/
 *.log
-
-# sort workflows
-n8n-workflows
-dropshipping
