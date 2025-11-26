@@ -1,5 +1,19 @@
 <h1 align="center">FlowScribe</h1>
 
+<p align="center">
+  <a href="https://www.python.org/">
+    <img alt="Python" src="https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white">
+  </a>
+  <a href="https://ollama.com/">
+    <img alt="LLM Backend" src="https://img.shields.io/badge/LLM-Ollama-3FB950">
+  </a>
+  <a href="#">
+    <img alt="Interface" src="https://img.shields.io/badge/Interface-CLI%20%2B%20GUI-4C1">
+  </a>
+  <a href="https://deepwiki.com/CagriCatik/FlowScribe">
+    <img alt="Ask DeepWiki" src="https://deepwiki.com/badge.svg">
+  </a>
+</p>
 
 <h4 align="center">
 A n8n Workflow Documentation Generator
@@ -30,13 +44,13 @@ flowscribe/
   llm/           # LLM interface, Ollama client, and related errors
   logging.py     # Shared logging setup
 tests/           # Unit tests
-```
+````
 
 ## Requirements
 
-- Python 3.10+ (uses `tomllib` and pathlib conveniences).
-- Local Ollama instance reachable at `http://localhost:11434` (default) or another host you configure.
-- Python packages: `requests`, `tqdm`, `rich`, `PyQt6` (for the GUI), and `pytest` for tests.
+* Python 3.10+ (uses `tomllib` and pathlib conveniences).
+* Local Ollama instance reachable at `http://localhost:11434` (default) or another host you configure.
+* Python packages: `requests`, `tqdm`, `rich`, `PyQt6` (for the GUI), and `pytest` for tests.
 
 Install dependencies (example):
 
@@ -50,8 +64,8 @@ FlowScribe resolves configuration in this order: built-in defaults < TOML file <
 
 Supported config file names (first match wins):
 
-- `flowscribe.toml`
-- `flowscribe-config.toml`
+* `flowscribe.toml`
+* `flowscribe-config.toml`
 
 Example `flowscribe.toml`:
 
@@ -83,8 +97,8 @@ repeat_penalty = 1.08
 
 Environment variable overrides:
 
-- `FS_LLM_HOST`
-- `FS_LLM_MODEL`
+* `FS_LLM_HOST`
+* `FS_LLM_MODEL`
 
 ## CLI usage
 
@@ -96,26 +110,26 @@ python -m flowscribe.cli.main generate /path/to/workflows -o ./docs
 
 Commands:
 
-- `generate INPUT_PATH [options]` – create Markdown docs.
-- `dry-run INPUT_PATH [options]` – list workflows without calling the LLM or writing files.
-- `config show [--config PATH]` – print the resolved configuration.
+* `generate INPUT_PATH [options]` -- create Markdown docs.
+* `dry-run INPUT_PATH [options]` -- list workflows without calling the LLM or writing files.
+* `config show [--config PATH]` -- print the resolved configuration.
 
 Common options (shared by `generate` and `dry-run`):
 
-- `-o, --output-dir PATH` – output directory root (mirrors input structure).
-- `--config PATH` – explicit TOML config file.
-- `-m, --model NAME` and `--host URL` – LLM target.
-- `--num-predict`, `--temperature`, `--top-p`, `--num-ctx`, `--repeat-penalty` – LLM sampling controls.
-- `--system-prompt`, `--user-prompt`, `--prompt-profile` – prompt overrides.
-- `-v, --verbose` – enable DEBUG logging.
+* `-o, --output-dir PATH` -- output directory root (mirrors input structure).
+* `--config PATH` -- explicit TOML config file.
+* `-m, --model NAME` and `--host URL` -- LLM target.
+* `--num-predict`, `--temperature`, `--top-p`, `--num-ctx`, `--repeat-penalty` -- LLM sampling controls.
+* `--system-prompt`, `--user-prompt`, `--prompt-profile` -- prompt overrides.
+* `-v, --verbose` -- enable DEBUG logging.
 
 Exit codes:
 
-- `0` success
-- `1` usage error
-- `2` configuration error
-- `3` LLM communication error
-- `4` runtime/discovery error
+* `0` success
+* `1` usage error
+* `2` configuration error
+* `3` LLM communication error
+* `4` runtime/discovery error
 
 ## GUI usage
 
@@ -151,4 +165,6 @@ Run the test suite:
 pytest -q
 ```
 
-Logging defaults to INFO; pass `-v` or set `generation.verbose` to enable DEBUG output. Dry-run is available in both CLI and engine configuration to validate discovery without hitting the LLM or writing files.
+
+```
+```
