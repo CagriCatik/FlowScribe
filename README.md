@@ -1,8 +1,12 @@
-# FlowScribe
+<h1 align="center">FlowScribe</h1>
 
-> A n8n Workflow Documentation Generator
 
-FlowScribe turns n8n workflow JSON definitions into implementation-grade Markdown documentation using a local LLM (Ollama by default). The project now uses a layered architecture with reusable core services, an extensible LLM client interface, and both CLI and PyQt desktop front-ends.
+<h4 align="center">
+A n8n Workflow Documentation Generator
+</h4>
+
+- FlowScribe turns n8n workflow JSON definitions into implementation-grade Markdown documentation using a local LLM (Ollama by default).
+- The project uses a layered architecture with reusable core services, an extensible LLM client interface, and both CLI and PyQt desktop front-ends.
 
 ## Key features
 
